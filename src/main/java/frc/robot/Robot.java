@@ -17,8 +17,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
-
-
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.ControlMode;
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to
@@ -39,13 +39,13 @@ public class Robot extends TimedRobot {
    * for any
    * initialization code.
    */
-  private final PWMMotorController m_leftMotorLead = new PWMVictorSPX (0);
-  private final PWMMotorController m_leftMotorFollow = new PWMVictorSPX (1);
-  private final PWMMotorController m_rightMotorLead = new PWMVictorSPX (2);
-  private final PWMMotorController m_rightMotorFollow = new PWMVictorSPX (3);
+  private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX (2);
+  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (10);
+  private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
+  private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
 
-  private final WPI_VictorSPX vicMotorL1 = new WPI_VictorSPX(3);
-  private final WPI_VictorSPX vicMotorR1 = new WPI_VictorSPX(4);
+  private final TalonSRX talMotorL1 = new TalonSRX(8);
+  private final WPI_VictorSPX vicMotorR1 = new WPI_VictorSPX(3);
 
   private DifferentialDrive m_robotDrive;
 
@@ -56,9 +56,10 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    m_leftMotorLead.addFollower(m_leftMotorFollow);
-    m_rightMotorLead.addFollower(m_rightMotorFollow);
-    m_robotDrive = new DifferentialDrive(m_leftMotorLead::set, m_rightMotorLead::set);
+    m_leftMotorLead.follow(m_leftMotorFollow);
+    m_rightMotorLead.follow(m_rightMotorFollow);
+    //m_robotDrive = new DifferentialDrive(m_leftMotorLead::set, m_rightMotorLead::set);
+    m_robotDrive = new DifferentialDrive(m_leftMotorLead, m_rightMotorLead);
     SendableRegistry.addChild(m_robotDrive, m_leftMotorLead);
     SendableRegistry.addChild(m_robotDrive, m_rightMotorLead);
 
@@ -68,32 +69,6 @@ public class Robot extends TimedRobot {
     m_rightMotorLead.setInverted(true);
 
     /** This function is called periodically during operator control. */
-
-    // this will be for intaking
-    if (m_coDriverController.getXButtonPressed()) {
-      vicMotorL1.set(-.5);
-      vicMotorR1.set(-.5);
-    } else if (m_coDriverController.getXButtonReleased()) {
-      vicMotorL1.set(0);
-      vicMotorR1.set(0);
-
-    }
-    // this will be for ejecting fast
-    else if (m_coDriverController.getAButtonPressed()) {
-      vicMotorL1.set(1);
-      vicMotorR1.set(1);
-    } else if (m_coDriverController.getAButtonReleased()) {
-      vicMotorL1.set(0);
-      vicMotorR1.set(0);
-    }
-    // this will be for ejecting slow
-    else if (m_coDriverController.getYButtonPressed()) {
-      vicMotorL1.set(0.5);
-      vicMotorR1.set(0.5);
-    } else if (m_coDriverController.getYButtonReleased()) {
-      vicMotorL1.set(0);
-      vicMotorR1.set(0);
-    }
 
   }
 
@@ -150,7 +125,34 @@ public class Robot extends TimedRobot {
     // That means that the Y axis of the left stick moves the left side
     // of the robot forward and backward, and the Y axis of the right stick
     // moves the right side of the robot forward and backward.
-    m_robotDrive.tankDrive(-m_driverController.getLeftY(), -m_driverController.getRightY());
+    m_robotDrive.tankDrive(m_driverController.getLeftY(), m_driverController.getRightY());
+
+    // this will be for intaking
+    if (m_coDriverController.getXButtonPressed()) {
+      talMotorL1.set(ControlMode.PercentOutput,.5);
+      vicMotorR1.set(-.5);
+    } else if (m_coDriverController.getXButtonReleased()) {
+      talMotorL1.set(ControlMode.PercentOutput,0);
+      vicMotorR1.set(0);
+
+    }
+    // this will be for ejecting fast
+    else if (m_coDriverController.getAButtonPressed()) {
+      // System.out.println("x pressed");
+      talMotorL1.set(ControlMode.PercentOutput,1);
+      vicMotorR1.set(-1);
+    } else if (m_coDriverController.getAButtonReleased()) {
+      talMotorL1.set(ControlMode.PercentOutput,0);
+      vicMotorR1.set(0);
+    }
+    // this will be for ejecting slow
+    else if (m_coDriverController.getYButtonPressed()) {
+      talMotorL1.set(ControlMode.PercentOutput,0.5);
+      vicMotorR1.set(-0.5);
+    } else if (m_coDriverController.getYButtonReleased()) {
+      talMotorL1.set(ControlMode.PercentOutput,0);
+      vicMotorR1.set(0);
+    }
   }
 
   /**
