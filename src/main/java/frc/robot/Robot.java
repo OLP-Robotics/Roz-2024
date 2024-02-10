@@ -121,40 +121,49 @@ public class Robot extends TimedRobot {
   
 @Override
   public void teleopPeriodic() {
-    // Drive with tank drive.
-    // That means that the Y axis of the left stick moves the left side
-    // of the robot forward and backward, and the Y axis of the right stick
-    // moves the right side of the robot forward and backward.
-    m_robotDrive.tankDrive(m_driverController.getLeftY(), m_driverController.getRightY());
-
-    // this will be for intaking
-    if (m_coDriverController.getXButtonPressed()) {
-      talMotorL1.set(ControlMode.PercentOutput,.5);
-      vicMotorR1.set(-.5);
-    } else if (m_coDriverController.getXButtonReleased()) {
-      talMotorL1.set(ControlMode.PercentOutput,0);
-      vicMotorR1.set(0);
-
-    }
-    // this will be for ejecting fast
-    else if (m_coDriverController.getAButtonPressed()) {
-      // System.out.println("x pressed");
-      talMotorL1.set(ControlMode.PercentOutput,1);
-      vicMotorR1.set(-1);
-    } else if (m_coDriverController.getAButtonReleased()) {
-      talMotorL1.set(ControlMode.PercentOutput,0);
-      vicMotorR1.set(0);
-    }
-    // this will be for ejecting slow
-    else if (m_coDriverController.getYButtonPressed()) {
-      talMotorL1.set(ControlMode.PercentOutput,0.5);
-      vicMotorR1.set(-0.5);
-    } else if (m_coDriverController.getYButtonReleased()) {
-      talMotorL1.set(ControlMode.PercentOutput,0);
-      vicMotorR1.set(0);
-    }
+    /*  Drive with tank drive.
+    Left trigger moves the robot forward
+    Right trigger moves the robot backwards
+    When you push the right X axis up it turns the robot to the right 
+    When you push the right X axis down it turns the robot to the left 
+  `*/
+  if(m_driverController.getLeftTriggerAxis()>0) {
+    m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(),-m_driverController.getLeftTriggerAxis());
+  } 
+  if(m_driverController.getRightTriggerAxis()>0) {
+    m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(),m_driverController.getRightTriggerAxis());
+  } 
+  if(m_driverController.getRightY()>0) {
+    m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
+  } 
+  if(m_driverController.getRightY()<0) {
+    m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
+  } 
+   // this will be for intaking
+  if (m_coDriverController.getXButtonPressed()) {
+    talMotorL1.set(ControlMode.PercentOutput,-.4);
+    vicMotorR1.set(.4);
+  } else if (m_coDriverController.getXButtonReleased()) {
+    talMotorL1.set(ControlMode.PercentOutput,0);
+    vicMotorR1.set(0);
   }
-
+  // this will be for ejecting fast
+    else if (m_coDriverController.getYButtonPressed()) {
+    talMotorL1.set(ControlMode.PercentOutput,1);
+    vicMotorR1.set(-1);
+  } else if (m_coDriverController.getYButtonReleased()) {
+    talMotorL1.set(ControlMode.PercentOutput,0);
+    vicMotorR1.set(0);
+  }
+   // this will be for ejecting slow
+    else if (m_coDriverController.getBButtonPressed()) {
+    talMotorL1.set(ControlMode.PercentOutput,0.5);
+    vicMotorR1.set(-0.5);
+  } else if (m_coDriverController.getBButtonReleased()) {
+    talMotorL1.set(ControlMode.PercentOutput,0);
+    vicMotorR1.set(0);
+  }
+}
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
    * like diagnostics
