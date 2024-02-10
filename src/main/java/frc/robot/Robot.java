@@ -47,6 +47,8 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (6);
   private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
   private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
+  private final WPI_VictorSPX m_climbRight = new WPI_VictorSPX (7);
+  private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX (4);
 
   private final TalonSRX talMotorL1 = new TalonSRX(8);
   private final WPI_VictorSPX vicMotorR1 = new WPI_VictorSPX(3);
@@ -182,8 +184,21 @@ public class Robot extends TimedRobot {
     talMotorL1.set(ControlMode.PercentOutput,0);
     vicMotorR1.set(0);
   }
-
-
+// BRINGS ROBOT UP
+if (m_coDriverController.getLeftBumper()){
+  m_climbRight.set(0.3);
+ // m_climbLeft.set(m_coDriverController.getLeftTriggerAxis());
+} 
+if (m_coDriverController.getRightBumper()){
+  m_climbRight.set(-0.3);
+  // m_climbLeft.set(-m_coDriverController.getLeftTriggerAxis());
+}
+if (m_coDriverController.getLeftBumperReleased()){
+  m_climbRight.set(0);
+}
+if (m_coDriverController.getRightBumperReleased()){
+  m_climbRight.set(0);
+}
 }
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
