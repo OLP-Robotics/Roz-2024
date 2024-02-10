@@ -19,6 +19,11 @@ import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+//Import required WPILib libraries
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.RobotController;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to
@@ -36,11 +41,10 @@ public class Robot extends TimedRobot {
 
    /**
    * This function is run when the robot is first started up and should be used
-   * for any
    * initialization code.
    */
   private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX (2);
-  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (10);
+  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (6);
   private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
   private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
 
@@ -51,6 +55,18 @@ public class Robot extends TimedRobot {
 
   private final XboxController m_driverController = new XboxController(0);
   private  XboxController m_coDriverController = new XboxController(1);
+
+  //Create an instance of the AnalogInput class so we can read from it later
+  public DigitalOutput ultrasonicTriggerPinOne = new DigitalOutput(0);
+  public AnalogInput ultrasonicSensorOne = new AnalogInput(0);
+  public double ultrasonicSensorOneRange = 0;
+  public double voltageScaleFactor = 1;
+  public void turnOnSensorOne() {
+    ultrasonicTriggerPinOne.set(true);
+  }
+  public void turnOffSensors() {
+    ultrasonicTriggerPinOne.set(false);
+  }
 
   @Override
   public void robotInit() {
@@ -69,6 +85,9 @@ public class Robot extends TimedRobot {
     m_rightMotorLead.setInverted(true);
 
     /** This function is called periodically during operator control. */
+
+    //Initialize range readings on SmartDashboard as max distance in Centimeters.
+    SmartDashboard.putNumber("Sensor 1 Range", 500);
 
   }
 
@@ -163,6 +182,8 @@ public class Robot extends TimedRobot {
     talMotorL1.set(ControlMode.PercentOutput,0);
     vicMotorR1.set(0);
   }
+
+
 }
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
