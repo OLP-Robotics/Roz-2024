@@ -47,11 +47,15 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (6);
   private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
   private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
+  
   private final WPI_VictorSPX m_climbRight = new WPI_VictorSPX (7);
   private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX (4);
 
-  private final TalonSRX talMotorL1 = new TalonSRX(8);
-  private final WPI_VictorSPX vicMotorR1 = new WPI_VictorSPX(3);
+  private final TalonSRX leftShooter = new TalonSRX(8);
+  private final WPI_VictorSPX rightShooter = new WPI_VictorSPX(3);
+
+  private final WPI_VictorSPX intakeLittleWheels = new WPI_VictorSPX(9);
+  private final WPI_VictorSPX intakeMover = new WPI_VictorSPX(10);
 
   private DifferentialDrive m_robotDrive;
 
@@ -69,6 +73,7 @@ public class Robot extends TimedRobot {
   public void turnOffSensors() {
     ultrasonicTriggerPinOne.set(false);
   }
+
 
   @Override
   public void robotInit() {
@@ -145,8 +150,8 @@ public class Robot extends TimedRobot {
     /*  Drive with tank drive.
     Left trigger moves the robot forward
     Right trigger moves the robot backwards
-    When you push the right X axis up it turns the robot to the right 
-    When you push the right X axis down it turns the robot to the left 
+    When you push the right Y axis up it turns the robot to the right 
+    When you push the right Y axis down it turns the robot to the left 
   `*/
   if(m_driverController.getLeftTriggerAxis()>0) {
     m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(),-m_driverController.getLeftTriggerAxis());
@@ -160,38 +165,53 @@ public class Robot extends TimedRobot {
   if(m_driverController.getRightY()<0) {
     m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
   } 
-   // this will be for intaking
+   // this will be for intaking the shooter
   if (m_coDriverController.getXButtonPressed()) {
-    talMotorL1.set(ControlMode.PercentOutput,-.4);
-    vicMotorR1.set(.4);
+    leftShooter.set(ControlMode.PercentOutput,-.4);
+    rightShooter.set(.4);
   } else if (m_coDriverController.getXButtonReleased()) {
-    talMotorL1.set(ControlMode.PercentOutput,0);
-    vicMotorR1.set(0);
+    leftShooter.set(ControlMode.PercentOutput,0);
+    rightShooter.set(0);
   }
-  // this will be for ejecting fast
+  // this will be for ejecting shooter fast
     else if (m_coDriverController.getYButtonPressed()) {
-    talMotorL1.set(ControlMode.PercentOutput,1);
-    vicMotorR1.set(-1);
+    leftShooter.set(ControlMode.PercentOutput,1);
+    rightShooter.set(-1);
   } else if (m_coDriverController.getYButtonReleased()) {
-    talMotorL1.set(ControlMode.PercentOutput,0);
-    vicMotorR1.set(0);
+    leftShooter.set(ControlMode.PercentOutput,0);
+    rightShooter.set(0);
   }
-   // this will be for ejecting slow
+   // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-    talMotorL1.set(ControlMode.PercentOutput,0.5);
-    vicMotorR1.set(-0.5);
+    leftShooter.set(ControlMode.PercentOutput,0.5);
+    rightShooter.set(-0.5);
   } else if (m_coDriverController.getBButtonReleased()) {
-    talMotorL1.set(ControlMode.PercentOutput,0);
-    vicMotorR1.set(0);
+    leftShooter.set(ControlMode.PercentOutput,0);
+    rightShooter.set(0);
   }
+  //uses triggers for arm intake 
+  if(m_coDriverController.getLeftTriggerAxis()>0) {
+    intakeLittleWheels.set(1);
+  } 
+  if(m_coDriverController.getRightTriggerAxis()>0) {
+    intakeLittleWheels.set(-1);
+  } 
+
+  if(m_coDriverController.getAButtonPressed()) {
+    intakeMover.set(0.1);
+  } 
+  if(m_coDriverController.getRightY()<0) {
+    intakeMover.set(-0.1);
+  } 
+
 // BRINGS ROBOT UP
 if (m_coDriverController.getLeftBumper()){
   m_climbRight.set(0.3);
- // m_climbLeft.set(m_coDriverController.getLeftTriggerAxis());
+  m_climbLeft.set(m_coDriverController.getLeftTriggerAxis());
 } 
 if (m_coDriverController.getRightBumper()){
   m_climbRight.set(-0.3);
-  // m_climbLeft.set(-m_coDriverController.getLeftTriggerAxis());
+  m_climbLeft.set(-m_coDriverController.getLeftTriggerAxis());
 }
 if (m_coDriverController.getLeftBumperReleased()){
   m_climbRight.set(0);
@@ -200,6 +220,7 @@ if (m_coDriverController.getRightBumperReleased()){
   m_climbRight.set(0);
 }
 }
+
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
    * like diagnostics
