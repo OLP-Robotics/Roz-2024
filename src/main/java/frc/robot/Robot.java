@@ -49,7 +49,7 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
   
   private final WPI_VictorSPX m_climbRight = new WPI_VictorSPX (7);
-  private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX (4);
+  private final TalonSRX m_climbLeft = new TalonSRX(4);
 
   private final TalonSRX leftShooter = new TalonSRX(8);
   private final WPI_VictorSPX rightShooter = new WPI_VictorSPX(3);
@@ -62,7 +62,8 @@ public class Robot extends TimedRobot {
   private final XboxController m_driverController = new XboxController(0);
   private  XboxController m_coDriverController = new XboxController(1);
 
-  //Create an instance of the AnalogInput class so we can read from it later
+  //Create an instance of the AnalogInput class so we can read from it later 
+  /*
   public DigitalOutput ultrasonicTriggerPinOne = new DigitalOutput(0);
   public AnalogInput ultrasonicSensorOne = new AnalogInput(0);
   public double ultrasonicSensorOneRange = 0;
@@ -72,7 +73,7 @@ public class Robot extends TimedRobot {
   }
   public void turnOffSensors() {
     ultrasonicTriggerPinOne.set(false);
-  }
+  } */
 
 
   @Override
@@ -155,16 +156,14 @@ public class Robot extends TimedRobot {
   `*/
   if(m_driverController.getLeftTriggerAxis()>0) {
     m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(),-m_driverController.getLeftTriggerAxis());
-  } 
-  if(m_driverController.getRightTriggerAxis()>0) {
+  } else if(m_driverController.getRightTriggerAxis()>0) {
     m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(),m_driverController.getRightTriggerAxis());
-  } 
-  if(m_driverController.getRightY()>0) {
+  } else if(m_driverController.getRightY()>0) {
     m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
-  } 
-  if(m_driverController.getRightY()<0) {
+  } else if(m_driverController.getRightY()<0) {
     m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
-  } 
+  } else m_robotDrive.tankDrive(0,0);
+
    // this will be for intaking the shooter
   if (m_coDriverController.getXButtonPressed()) {
     leftShooter.set(ControlMode.PercentOutput,-.4);
@@ -192,32 +191,34 @@ public class Robot extends TimedRobot {
   //uses triggers for arm intake 
   if(m_coDriverController.getLeftTriggerAxis()>0) {
     intakeLittleWheels.set(1);
-  } 
-  if(m_coDriverController.getRightTriggerAxis()>0) {
+  } else if(m_coDriverController.getRightTriggerAxis()>0) {
     intakeLittleWheels.set(-1);
-  } 
+  } else if(m_coDriverController.getRightTriggerAxis() ==0) { //if nothing pressed, dont move
+    intakeLittleWheels.set(0);
+  }
 
   if(m_coDriverController.getAButtonPressed()) {
     intakeMover.set(0.1);
-  } 
-  if(m_coDriverController.getRightY()<0) {
+  } else if(m_coDriverController.getRightY()<0) {
     intakeMover.set(-0.1);
-  } 
+  } else if (m_coDriverController.getAButtonPressed() || m_coDriverController.getRightY() == 0) { //if nothing pressed, don't move
+    intakeMover.set(0);
+  }
 
 // BRINGS ROBOT UP
 if (m_coDriverController.getLeftBumper()){
   m_climbRight.set(0.3);
-  m_climbLeft.set(m_coDriverController.getLeftTriggerAxis());
-} 
+  m_climbLeft.set(ControlMode.PercentOutput,0.3);
+} else if (m_coDriverController.getLeftBumperReleased()){ //if nothing pressed, left doesn't move
+  m_climbRight.set(0);
+  m_climbLeft.set(ControlMode.PercentOutput,0);
+}
 if (m_coDriverController.getRightBumper()){
   m_climbRight.set(-0.3);
-  m_climbLeft.set(-m_coDriverController.getLeftTriggerAxis());
-}
-if (m_coDriverController.getLeftBumperReleased()){
+  m_climbLeft.set(ControlMode.PercentOutput,-0.3);
+} else if (m_coDriverController.getRightBumperReleased()){ //if nothnig pressed, right doesn't move
   m_climbRight.set(0);
-}
-if (m_coDriverController.getRightBumperReleased()){
-  m_climbRight.set(0);
+  m_climbLeft.set(ControlMode.PercentOutput,0);
 }
 }
 
