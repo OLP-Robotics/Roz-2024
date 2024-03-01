@@ -23,6 +23,8 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.cameraserver.CameraServer;
+//import edu.wpi.first.wpilibj.Encoder;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -48,8 +50,8 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
   private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
   
-  private final WPI_VictorSPX m_climbRight = new WPI_VictorSPX (7);
-  private final TalonSRX m_climbLeft = new TalonSRX(4);
+  private final TalonSRX m_climbRight = new TalonSRX(4);
+  private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX(7);
 
   private final TalonSRX leftShooter = new TalonSRX(8);
   private final WPI_VictorSPX rightShooter = new WPI_VictorSPX(3);
@@ -61,6 +63,8 @@ public class Robot extends TimedRobot {
 
   private final XboxController m_driverController = new XboxController(0);
   private  XboxController m_coDriverController = new XboxController(1);
+
+  
 
   //Create an instance of the AnalogInput class so we can read from it later 
   /*
@@ -96,6 +100,8 @@ public class Robot extends TimedRobot {
 
     //Initialize range readings on SmartDashboard as max distance in Centimeters.
     SmartDashboard.putNumber("Sensor 1 Range", 500);
+
+    CameraServer.startAutomaticCapture();
 
   }
 
@@ -190,35 +196,35 @@ public class Robot extends TimedRobot {
   }
   //uses triggers for arm intake 
   if(m_coDriverController.getLeftTriggerAxis()>0) {
-    intakeLittleWheels.set(1);
-  } else if(m_coDriverController.getRightTriggerAxis()>0) {
     intakeLittleWheels.set(-1);
-  } else if(m_coDriverController.getRightTriggerAxis() ==0) { //if nothing pressed, dont move
+  } else if(m_coDriverController.getRightTriggerAxis()>0) {
+    intakeLittleWheels.set(1);
+  } else if(m_coDriverController.getRightTriggerAxis() == 0 || m_coDriverController.getLeftTriggerAxis() == 0 ) { //if nothing pressed, dont move
     intakeLittleWheels.set(0);
   }
 
-  if(m_coDriverController.getAButtonPressed()) {
-    intakeMover.set(0.1);
-  } else if(m_coDriverController.getRightY()<0) {
-    intakeMover.set(-0.1);
-  } else if (m_coDriverController.getAButtonPressed() || m_coDriverController.getRightY() == 0) { //if nothing pressed, don't move
+  if(m_coDriverController.getRightY()<0) {
+    intakeMover.set(-0.5);
+  } else if(m_coDriverController.getRightY()>0) {
+    intakeMover.set(0.5);
+  } else if (m_coDriverController.getRightY() == 0) { //if nothing pressed, don't move
     intakeMover.set(0);
   }
 
 // BRINGS ROBOT UP
-if (m_coDriverController.getLeftBumper()){
-  m_climbRight.set(0.3);
-  m_climbLeft.set(ControlMode.PercentOutput,0.3);
-} else if (m_coDriverController.getLeftBumperReleased()){ //if nothing pressed, left doesn't move
-  m_climbRight.set(0);
-  m_climbLeft.set(ControlMode.PercentOutput,0);
+if (m_driverController.getLeftBumperPressed()){
+//  m_climbRight.set(ControlMode.PercentOutput,0.7);
+  m_climbLeft.set(0.7);
+} else if (m_driverController.getLeftBumperReleased()){ //if nothing pressed, left doesn't move
+ // m_climbRight.set(ControlMode.PercentOutput,0);
+ m_climbLeft.set(0);
 }
-if (m_coDriverController.getRightBumper()){
-  m_climbRight.set(-0.3);
-  m_climbLeft.set(ControlMode.PercentOutput,-0.3);
-} else if (m_coDriverController.getRightBumperReleased()){ //if nothnig pressed, right doesn't move
-  m_climbRight.set(0);
-  m_climbLeft.set(ControlMode.PercentOutput,0);
+if (m_driverController.getRightBumperPressed()){
+ // m_climbRight.set(ControlMode.PercentOutput,-0.7);
+  m_climbLeft.set(-0.7);
+} else if (m_driverController.getRightBumperReleased()){ //if nothnig pressed, right doesn't move
+//  m_climbRight.set(ControlMode.PercentOutput,0);
+ m_climbLeft.set(0);
 }
 }
 
