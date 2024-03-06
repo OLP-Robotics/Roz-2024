@@ -21,10 +21,11 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 //Import required WPILib libraries
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.cameraserver.CameraServer;
-//import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -63,6 +64,11 @@ public class Robot extends TimedRobot {
 
   private final XboxController m_driverController = new XboxController(0);
   private  XboxController m_coDriverController = new XboxController(1);
+
+ // private DigitalInput rightLimitSwitch = new DigitalInput(1);
+  private DigitalInput leftLimitSwitch = new DigitalInput(0);
+
+  private final Timer mtimer = new Timer();
 
   
 
@@ -150,6 +156,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
+    mtimer.start();
   }
   
 @Override
@@ -174,22 +181,37 @@ public class Robot extends TimedRobot {
   if (m_coDriverController.getXButtonPressed()) {
     leftShooter.set(ControlMode.PercentOutput,-.4);
     rightShooter.set(.4);
+   // intakeLittleWheels.set(-1);
   } else if (m_coDriverController.getXButtonReleased()) {
     leftShooter.set(ControlMode.PercentOutput,0);
     rightShooter.set(0);
   }
   // this will be for ejecting shooter fast
     else if (m_coDriverController.getYButtonPressed()) {
-    leftShooter.set(ControlMode.PercentOutput,1);
-    rightShooter.set(-1);
-  } else if (m_coDriverController.getYButtonReleased()) {
+     leftShooter.set(ControlMode.PercentOutput,1);
+    rightShooter.set(-1); 
+/*     intakeLittleWheels.set(-1);
+  // the shooter spins for 1 second and after that 1 second, the intake wheels start moving as the shooter keeps spinning
+    if(mtimer.get() < 0) {
+      leftShooter.set(ControlMode.PercentOutput,1);
+      rightShooter.set(-1);
+      }
+     //if(mtimer.get() >= 0.2) 
+     else{
+     // intakeLittleWheels.set(-1);
+     // leftShooter.set(ControlMode.PercentOutput,1);
+      // rightShooter.set(-1);
+      }
+  */} else if (m_coDriverController.getYButtonReleased()) {
+   // mtimer.reset();
     leftShooter.set(ControlMode.PercentOutput,0);
     rightShooter.set(0);
+    //intakeLittleWheels.set(0);
   }
    // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-    leftShooter.set(ControlMode.PercentOutput,0.5);
-    rightShooter.set(-0.5);
+    leftShooter.set(ControlMode.PercentOutput,0.4);
+    rightShooter.set(-0.4);
   } else if (m_coDriverController.getBButtonReleased()) {
     leftShooter.set(ControlMode.PercentOutput,0);
     rightShooter.set(0);
@@ -203,7 +225,7 @@ public class Robot extends TimedRobot {
     intakeLittleWheels.set(0);
   }
 
-  if(m_coDriverController.getRightY()<0) {
+  if(m_coDriverController.getRightY()<0 && !(leftLimitSwitch.get())) {
     intakeMover.set(-0.5);
   } else if(m_coDriverController.getRightY()>0) {
     intakeMover.set(0.5);
