@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -69,6 +71,7 @@ public class Robot extends TimedRobot {
   private DigitalInput leftLimitSwitch = new DigitalInput(0);
 
   private final Timer mtimer = new Timer();
+  private final Timer shootTimer = new Timer();
 
   
 
@@ -156,7 +159,8 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    mtimer.start();
+    shootTimer.reset();
+    SmartDashboard.putString("DB/String 1", "  ");
   }
   
 @Override
@@ -177,6 +181,15 @@ public class Robot extends TimedRobot {
     m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
   } else m_robotDrive.tankDrive(0,0);
 
+ //uses triggers for arm intake 
+ if(m_coDriverController.getLeftBumperPressed()) {
+    intakeLittleWheels.set(-1);
+  } else if(m_coDriverController.getRightBumperPressed()) {
+    intakeLittleWheels.set(1);
+  } else if(m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { //if nothing pressed, dont move
+    intakeLittleWheels.set(0);
+  }
+
    // this will be for intaking the shooter
   if (m_coDriverController.getXButtonPressed()) {
     leftShooter.set(ControlMode.PercentOutput,-.4);
@@ -187,27 +200,35 @@ public class Robot extends TimedRobot {
     rightShooter.set(0);
   }
   // this will be for ejecting shooter fast
-    else if (m_coDriverController.getYButtonPressed()) {
-     leftShooter.set(ControlMode.PercentOutput,1);
-    rightShooter.set(-1); 
-/*     intakeLittleWheels.set(-1);
-  // the shooter spins for 1 second and after that 1 second, the intake wheels start moving as the shooter keeps spinning
-    if(mtimer.get() < 0) {
-      leftShooter.set(ControlMode.PercentOutput,1);
-      rightShooter.set(-1);
+    if (m_coDriverController.getYButton()) {
+      SmartDashboard.putString("DB/String 1", Double.toString(shootTimer.get()));
+  // the shooter spins for 0.2 second and after that, the intake wheels start moving as the shooter keeps spinning
+      // shootTimer.reset();
+      shootTimer.start();
+      // Spin the shooter for 1 sec
+    if(shootTimer.get() < 1) {
+      leftShooter.set(ControlMode.PercentOutput,.4);
+      rightShooter.set(-.4);
+      SmartDashboard.putString("DB/String 2", "Less than 1");
       }
-     //if(mtimer.get() >= 0.2) 
-     else{
-     // intakeLittleWheels.set(-1);
-     // leftShooter.set(ControlMode.PercentOutput,1);
-      // rightShooter.set(-1);
+      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+     else if(shootTimer.get() >= 1 && shootTimer.get() < 5 ) {
+     intakeLittleWheels.set(-.4);
+      leftShooter.set(ControlMode.PercentOutput,.4);
+      rightShooter.set(-.4);
+      SmartDashboard.putString("DB/String 2", "between 1 and 5");
       }
-  */} else if (m_coDriverController.getYButtonReleased()) {
-   // mtimer.reset();
+      // After 5 sec or by deafult stop all motors
+   else if (shootTimer.get() >= 5) {
+    SmartDashboard.putString("DB/String 2", "button released");
     leftShooter.set(ControlMode.PercentOutput,0);
     rightShooter.set(0);
-    //intakeLittleWheels.set(0);
+    intakeLittleWheels.set(0);
+    shootTimer.reset();
   }
+}
+
+    
    // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
     leftShooter.set(ControlMode.PercentOutput,0.4);
@@ -215,14 +236,6 @@ public class Robot extends TimedRobot {
   } else if (m_coDriverController.getBButtonReleased()) {
     leftShooter.set(ControlMode.PercentOutput,0);
     rightShooter.set(0);
-  }
-  //uses triggers for arm intake 
-  if(m_coDriverController.getLeftTriggerAxis()>0) {
-    intakeLittleWheels.set(-1);
-  } else if(m_coDriverController.getRightTriggerAxis()>0) {
-    intakeLittleWheels.set(1);
-  } else if(m_coDriverController.getRightTriggerAxis() == 0 || m_coDriverController.getLeftTriggerAxis() == 0 ) { //if nothing pressed, dont move
-    intakeLittleWheels.set(0);
   }
 
   if(m_coDriverController.getRightY()<0 && !(leftLimitSwitch.get())) {
@@ -248,7 +261,9 @@ if (m_driverController.getRightBumperPressed()){
 //  m_climbRight.set(ControlMode.PercentOutput,0);
  m_climbLeft.set(0);
 }
-}
+
+  }
+
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
