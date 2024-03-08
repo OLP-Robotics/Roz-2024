@@ -44,15 +44,15 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-   /**
+  /**
    * This function is run when the robot is first started up and should be used
    * initialization code.
    */
-  private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX (2);
-  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX (6);
-  private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX (1);
-  private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX (5);
-  
+  private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX(2);
+  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX(6);
+  private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX(1);
+  private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX(5);
+
   private final TalonSRX m_climbRight = new TalonSRX(4);
   private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX(7);
 
@@ -65,29 +65,28 @@ public class Robot extends TimedRobot {
   private DifferentialDrive m_robotDrive;
 
   private final XboxController m_driverController = new XboxController(0);
-  private  XboxController m_coDriverController = new XboxController(1);
+  private XboxController m_coDriverController = new XboxController(1);
 
- // private DigitalInput rightLimitSwitch = new DigitalInput(1);
+  // private DigitalInput rightLimitSwitch = new DigitalInput(1);
   private DigitalInput leftLimitSwitch = new DigitalInput(0);
 
   private final Timer mtimer = new Timer();
   private final Timer shootTimer = new Timer();
+  private boolean shootCompleted = false;
 
-  
-
-  //Create an instance of the AnalogInput class so we can read from it later 
+  // Create an instance of the AnalogInput class so we can read from it later
   /*
-  public DigitalOutput ultrasonicTriggerPinOne = new DigitalOutput(0);
-  public AnalogInput ultrasonicSensorOne = new AnalogInput(0);
-  public double ultrasonicSensorOneRange = 0;
-  public double voltageScaleFactor = 1;
-  public void turnOnSensorOne() {
-    ultrasonicTriggerPinOne.set(true);
-  }
-  public void turnOffSensors() {
-    ultrasonicTriggerPinOne.set(false);
-  } */
-
+   * public DigitalOutput ultrasonicTriggerPinOne = new DigitalOutput(0);
+   * public AnalogInput ultrasonicSensorOne = new AnalogInput(0);
+   * public double ultrasonicSensorOneRange = 0;
+   * public double voltageScaleFactor = 1;
+   * public void turnOnSensorOne() {
+   * ultrasonicTriggerPinOne.set(true);
+   * }
+   * public void turnOffSensors() {
+   * ultrasonicTriggerPinOne.set(false);
+   * }
+   */
 
   @Override
   public void robotInit() {
@@ -95,7 +94,8 @@ public class Robot extends TimedRobot {
 
     m_leftMotorLead.follow(m_leftMotorFollow);
     m_rightMotorLead.follow(m_rightMotorFollow);
-    //m_robotDrive = new DifferentialDrive(m_leftMotorLead::set, m_rightMotorLead::set);
+    // m_robotDrive = new DifferentialDrive(m_leftMotorLead::set,
+    // m_rightMotorLead::set);
     m_robotDrive = new DifferentialDrive(m_leftMotorLead, m_rightMotorLead);
     SendableRegistry.addChild(m_robotDrive, m_leftMotorLead);
     SendableRegistry.addChild(m_robotDrive, m_rightMotorLead);
@@ -107,7 +107,7 @@ public class Robot extends TimedRobot {
 
     /** This function is called periodically during operator control. */
 
-    //Initialize range readings on SmartDashboard as max distance in Centimeters.
+    // Initialize range readings on SmartDashboard as max distance in Centimeters.
     SmartDashboard.putNumber("Sensor 1 Range", 500);
 
     CameraServer.startAutomaticCapture();
@@ -145,15 +145,6 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
-    }
   }
 
   /** This function is called once when teleop is enabled. */
@@ -162,108 +153,136 @@ public class Robot extends TimedRobot {
     shootTimer.reset();
     SmartDashboard.putString("DB/String 1", "  ");
   }
-  
-@Override
+
+  @Override
   public void teleopPeriodic() {
-    /*  Drive with tank drive.
-    Left trigger moves the robot forward
-    Right trigger moves the robot backwards
-    When you push the right Y axis up it turns the robot to the right 
-    When you push the right Y axis down it turns the robot to the left 
-  `*/
-  if(m_driverController.getLeftTriggerAxis()>0) {
-    m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(),-m_driverController.getLeftTriggerAxis());
-  } else if(m_driverController.getRightTriggerAxis()>0) {
-    m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(),m_driverController.getRightTriggerAxis());
-  } else if(m_driverController.getRightY()>0) {
-    m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
-  } else if(m_driverController.getRightY()<0) {
-    m_robotDrive.tankDrive(-m_driverController.getRightY(),m_driverController.getRightY());
-  } else m_robotDrive.tankDrive(0,0);
+    /*
+     * Drive with tank drive.
+     * Left trigger moves the robot forward
+     * Right trigger moves the robot backwards
+     * When you push the right Y axis up it turns the robot to the right
+     * When you push the right Y axis down it turns the robot to the left
+     * `
+     */
+    if (m_driverController.getLeftTriggerAxis() > 0) {
+      m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(), -m_driverController.getLeftTriggerAxis());
+    } else if (m_driverController.getRightTriggerAxis() > 0) {
+      m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(), m_driverController.getRightTriggerAxis());
+    } else if (m_driverController.getRightY() > 0) {
+      m_robotDrive.tankDrive(-m_driverController.getRightY(), m_driverController.getRightY());
+    } else if (m_driverController.getRightY() < 0) {
+      m_robotDrive.tankDrive(-m_driverController.getRightY(), m_driverController.getRightY());
+    } else
+      m_robotDrive.tankDrive(0, 0);
 
- //uses triggers for arm intake 
- if(m_coDriverController.getLeftBumperPressed()) {
-    intakeLittleWheels.set(-1);
-  } else if(m_coDriverController.getRightBumperPressed()) {
-    intakeLittleWheels.set(1);
-  } else if(m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { //if nothing pressed, dont move
-    intakeLittleWheels.set(0);
-  }
+    // uses triggers for arm intake
+    if (m_coDriverController.getLeftBumperPressed()) {
+      intakeLittleWheels.set(-1);
+    } else if (m_coDriverController.getRightBumperPressed()) {
+      intakeLittleWheels.set(1);
+    } else if (m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { // if
+                                                                                                                // nothing
+                                                                                                                // pressed,
+                                                                                                                // dont
+                                                                                                                // move
+      intakeLittleWheels.set(0);
+    }
 
-   // this will be for intaking the shooter
-  if (m_coDriverController.getXButtonPressed()) {
-    leftShooter.set(ControlMode.PercentOutput,-.4);
-    rightShooter.set(.4);
-   // intakeLittleWheels.set(-1);
-  } else if (m_coDriverController.getXButtonReleased()) {
-    leftShooter.set(ControlMode.PercentOutput,0);
-    rightShooter.set(0);
-  }
-  // this will be for ejecting shooter fast
+    // this will be for intaking the shooter
+    if (m_coDriverController.getXButtonPressed()) {
+      leftShooter.set(ControlMode.PercentOutput, -.4);
+      rightShooter.set(.4);
+      // intakeLittleWheels.set(-1);
+    } else if (m_coDriverController.getXButtonReleased()) {
+      leftShooter.set(ControlMode.PercentOutput, 0);
+      rightShooter.set(0);
+    }
+    // this will be for ejecting shooter fast
+    SmartDashboard.putString("DB/String 1", Double.toString(shootTimer.get()));
+
     if (m_coDriverController.getYButton()) {
-      SmartDashboard.putString("DB/String 1", Double.toString(shootTimer.get()));
-  // the shooter spins for 0.2 second and after that, the intake wheels start moving as the shooter keeps spinning
+      // the shooter spins for 0.2 second and after that, the intake wheels start
+      // moving as the shooter keeps spinning
       // shootTimer.reset();
-      shootTimer.start();
-      // Spin the shooter for 1 sec
-    if(shootTimer.get() < 1) {
-      leftShooter.set(ControlMode.PercentOutput,.4);
-      rightShooter.set(-.4);
-      SmartDashboard.putString("DB/String 2", "Less than 1");
+      if (shootTimer.get() == 0) {
+        shootTimer.start();
       }
-      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-     else if(shootTimer.get() >= 1 && shootTimer.get() < 5 ) {
-     intakeLittleWheels.set(-.4);
-      leftShooter.set(ControlMode.PercentOutput,.4);
-      rightShooter.set(-.4);
-      SmartDashboard.putString("DB/String 2", "between 1 and 5");
-      }
-      // After 5 sec or by deafult stop all motors
-   else if (shootTimer.get() >= 5) {
-    SmartDashboard.putString("DB/String 2", "button released");
-    leftShooter.set(ControlMode.PercentOutput,0);
-    rightShooter.set(0);
-    intakeLittleWheels.set(0);
-    shootTimer.reset();
-  }
-}
+      SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
 
-    
-   // this will be for ejecting shooter slow
+      if (shootCompleted == false) {
+        // Spin the shooter for 1 sec
+        if ((shootTimer.get() != 0) && (shootTimer.get() < 1)) {
+          leftShooter.set(ControlMode.PercentOutput, 0.4);
+          rightShooter.set(-0.4);
+          SmartDashboard.putString("DB/String 2", "Less than 1");
+        }
+        // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+        else if (shootTimer.get() >= 1 && shootTimer.get() < 5) {
+          intakeLittleWheels.set(0.4);
+          leftShooter.set(ControlMode.PercentOutput, 0.4);
+          rightShooter.set(-0.4);
+          SmartDashboard.putString("DB/String 2", "between 1 and 5");
+        }
+        // After 5 sec or by deafult stop all motors
+        else if (shootTimer.get() >= 5) {
+          SmartDashboard.putString("DB/String 2", "shoot complete");
+          leftShooter.set(ControlMode.PercentOutput, 0);
+          rightShooter.set(0);
+          intakeLittleWheels.set(0);
+          shootTimer.reset();
+          shootCompleted = true;
+        }
+      }
+    } else if (m_coDriverController.getYButtonReleased()) {
+      SmartDashboard.putString("DB/String 2", "button released");
+      leftShooter.set(ControlMode.PercentOutput, 0);
+      rightShooter.set(0);
+      intakeLittleWheels.set(0);
+      shootTimer.reset();
+      shootCompleted = false;
+    }
+
+    // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-    leftShooter.set(ControlMode.PercentOutput,0.4);
-    rightShooter.set(-0.4);
-  } else if (m_coDriverController.getBButtonReleased()) {
-    leftShooter.set(ControlMode.PercentOutput,0);
-    rightShooter.set(0);
+      leftShooter.set(ControlMode.PercentOutput, 0.4);
+      rightShooter.set(-0.4);
+    } else if (m_coDriverController.getBButtonReleased()) {
+      leftShooter.set(ControlMode.PercentOutput, 0);
+      rightShooter.set(0);
+    }
+    else if (m_coDriverController.getAButtonPressed()) {
+      leftShooter.set(ControlMode.PercentOutput, 1);
+      rightShooter.set(-1);
+    } else if (m_coDriverController.getAButtonReleased()) {
+      leftShooter.set(ControlMode.PercentOutput, 0);
+      rightShooter.set(0);
+    }
+
+    if (m_coDriverController.getRightY() < 0 && !(leftLimitSwitch.get())) {
+      intakeMover.set(-0.5);
+    } else if (m_coDriverController.getRightY() > 0) {
+      intakeMover.set(0.5);
+    } else if (m_coDriverController.getRightY() == 0) { // if nothing pressed, don't move
+      intakeMover.set(0);
+    }
+
+    // BRINGS ROBOT UP
+    if (m_driverController.getLeftBumperPressed()) {
+      // m_climbRight.set(ControlMode.PercentOutput,0.7);
+      m_climbLeft.set(0.7);
+    } else if (m_driverController.getLeftBumperReleased()) { // if nothing pressed, left doesn't move
+      // m_climbRight.set(ControlMode.PercentOutput,0);
+      m_climbLeft.set(0);
+    }
+    if (m_driverController.getRightBumperPressed()) {
+      // m_climbRight.set(ControlMode.PercentOutput,-0.7);
+      m_climbLeft.set(-0.7);
+    } else if (m_driverController.getRightBumperReleased()) { // if nothnig pressed, right doesn't move
+      // m_climbRight.set(ControlMode.PercentOutput,0);
+      m_climbLeft.set(0);
+    }
+
   }
-
-  if(m_coDriverController.getRightY()<0 && !(leftLimitSwitch.get())) {
-    intakeMover.set(-0.5);
-  } else if(m_coDriverController.getRightY()>0) {
-    intakeMover.set(0.5);
-  } else if (m_coDriverController.getRightY() == 0) { //if nothing pressed, don't move
-    intakeMover.set(0);
-  }
-
-// BRINGS ROBOT UP
-if (m_driverController.getLeftBumperPressed()){
-//  m_climbRight.set(ControlMode.PercentOutput,0.7);
-  m_climbLeft.set(0.7);
-} else if (m_driverController.getLeftBumperReleased()){ //if nothing pressed, left doesn't move
- // m_climbRight.set(ControlMode.PercentOutput,0);
- m_climbLeft.set(0);
-}
-if (m_driverController.getRightBumperPressed()){
- // m_climbRight.set(ControlMode.PercentOutput,-0.7);
-  m_climbLeft.set(-0.7);
-} else if (m_driverController.getRightBumperReleased()){ //if nothnig pressed, right doesn't move
-//  m_climbRight.set(ControlMode.PercentOutput,0);
- m_climbLeft.set(0);
-}
-
-  }
-
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
