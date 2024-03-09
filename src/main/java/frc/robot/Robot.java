@@ -74,9 +74,10 @@ public class Robot extends TimedRobot {
   private final Timer shootTimer = new Timer();
   private boolean shootCompleted = false;
 
-  private double intakeSpeed = 1;
   private double feedDelay = 2;
   private double shootDelay = feedDelay + 2; // 4 seconds since time start
+  private double fullSpeed = 1;
+  private double minSpeed = 0.4;
 
   // Create an instance of the AnalogInput class so we can read from it later
   /*
@@ -168,15 +169,15 @@ public class Robot extends TimedRobot {
     if (shootCompleted == false) {
       // Spin the shooter for 1 sec
       if ((shootTimer.get() >= 4) && (shootTimer.get() < 6)) {
-        leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
-        rightShooter.set(-intakeSpeed);
+        leftShooter.set(ControlMode.PercentOutput, fullSpeed);
+        rightShooter.set(fullSpeed);
         SmartDashboard.putString("DB/String 2", "Less than 1");
       }
       // After 2 sec the intake wheel feeds note into shooter for another 3 sec
       else if (shootTimer.get() >= 6 && shootTimer.get() < 8) {
-        intakeLittleWheels.set(intakeSpeed);
-        leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
-        rightShooter.set(-intakeSpeed);
+        intakeLittleWheels.set(fullSpeed);
+        leftShooter.set(ControlMode.PercentOutput, fullSpeed);
+        rightShooter.set(fullSpeed);
         SmartDashboard.putString("DB/String 2", "between 1 and 5");
       }
       // After 5 sec or by deafult stop all motors
@@ -220,9 +221,9 @@ public class Robot extends TimedRobot {
 
     // uses triggers for arm intake
     if (m_coDriverController.getLeftBumperPressed()) {
-      intakeLittleWheels.set(-1);
+      intakeLittleWheels.set(-fullSpeed);
     } else if (m_coDriverController.getRightBumperPressed()) {
-      intakeLittleWheels.set(1);
+      intakeLittleWheels.set(fullSpeed);
     } else if (m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { // if
                                                                                                                 // nothing
                                                                                                                 // pressed,
@@ -233,8 +234,8 @@ public class Robot extends TimedRobot {
 
     // this will be for intaking the shooter
     if (m_coDriverController.getXButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, -1);
-      rightShooter.set(.1);
+      leftShooter.set(ControlMode.PercentOutput, -fullSpeed);
+      rightShooter.set(-fullSpeed);
       // intakeLittleWheels.set(-1);
     } else if (m_coDriverController.getXButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
@@ -255,15 +256,15 @@ public class Robot extends TimedRobot {
       if (shootCompleted == false) {
         // Spin the shooter for 1 sec
         if ((shootTimer.get() != 0) && (shootTimer.get() < feedDelay)) {
-          leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
-          rightShooter.set(-intakeSpeed);
+          leftShooter.set(ControlMode.PercentOutput, fullSpeed);
+          rightShooter.set(fullSpeed);
           SmartDashboard.putString("DB/String 2", "Less than 1");
         }
         // After 2 sec the intake wheel feeds note into shooter for another 3 sec
         else if (shootTimer.get() >= feedDelay && shootTimer.get() < shootDelay) {
-          intakeLittleWheels.set(intakeSpeed);
-          leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
-          rightShooter.set(-intakeSpeed);
+          intakeLittleWheels.set(fullSpeed);
+          leftShooter.set(ControlMode.PercentOutput, fullSpeed);
+          rightShooter.set(fullSpeed);
           SmartDashboard.putString("DB/String 2", "between 1 and 5");
         }
         // After 5 sec or by deafult stop all motors
@@ -287,14 +288,14 @@ public class Robot extends TimedRobot {
 
     // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, 0.4);
-      rightShooter.set(-0.4);
+      leftShooter.set(ControlMode.PercentOutput, minSpeed);
+      rightShooter.set(minSpeed);
     } else if (m_coDriverController.getBButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
       rightShooter.set(0);
     } else if (m_coDriverController.getAButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, 1);
-      rightShooter.set(-1);
+      leftShooter.set(ControlMode.PercentOutput, fullSpeed);
+      rightShooter.set(fullSpeed);
     } else if (m_coDriverController.getAButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
       rightShooter.set(0);
@@ -309,20 +310,20 @@ public class Robot extends TimedRobot {
     }
 
     // BRINGS ROBOT UP
-    if (m_driverController.getLeftBumperPressed()) {
-      // m_climbRight.set(ControlMode.PercentOutput,0.7);
-      m_climbLeft.set(0.7);
-    } else if (m_driverController.getLeftBumperReleased()) { // if nothing pressed, left doesn't move
-      // m_climbRight.set(ControlMode.PercentOutput,0);
-      m_climbLeft.set(0);
-    }
-    if (m_driverController.getRightBumperPressed()) {
-      // m_climbRight.set(ControlMode.PercentOutput,-0.7);
-      m_climbLeft.set(-0.7);
-    } else if (m_driverController.getRightBumperReleased()) { // if nothnig pressed, right doesn't move
-      // m_climbRight.set(ControlMode.PercentOutput,0);
-      m_climbLeft.set(0);
-    }
+    // if (m_driverController.getLeftBumperPressed()) {
+    //   m_climbRight.set(ControlMode.PercentOutput, 0.7);
+    //   m_climbLeft.set(0.7);
+    // } else if (m_driverController.getLeftBumperReleased()) { // if nothing pressed, left doesn't move
+    //   m_climbRight.set(ControlMode.PercentOutput, 0);
+    //   m_climbLeft.set(0);
+    // }
+    // if (m_driverController.getRightBumperPressed()) {
+    //   m_climbRight.set(ControlMode.PercentOutput, -0.7);
+    //   m_climbLeft.set(-0.7);
+    // } else if (m_driverController.getRightBumperReleased()) { // if nothnig pressed, right doesn't move
+    //   m_climbRight.set(ControlMode.PercentOutput, 0);
+    //   m_climbLeft.set(0);
+    // }
 
   }
 
