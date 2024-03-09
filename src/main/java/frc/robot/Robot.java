@@ -70,7 +70,7 @@ public class Robot extends TimedRobot {
   // private DigitalInput rightLimitSwitch = new DigitalInput(1);
   private DigitalInput leftLimitSwitch = new DigitalInput(0);
 
-  private final Timer mtimer = new Timer();
+  private final Timer moveTimer = new Timer();
   private final Timer shootTimer = new Timer();
   private boolean shootCompleted = false;
 
@@ -145,6 +145,7 @@ public class Robot extends TimedRobot {
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+    moveTimer.start();
   }
 
   /** This function is called periodically during autonomous. */
@@ -156,38 +157,21 @@ public class Robot extends TimedRobot {
     if (shootTimer.get() == 0) {
       shootTimer.start();
     }
-    SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
 
-    if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
+    // if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
+    // // Drives forward continuously at half speed, using the gyro to stabilize the
+    // // heading
+    // m_robotDrive.tankDrive(.5, .5);
+    // } else {
+    // m_robotDrive.tankDrive(0, 0);
+    // }
+    shootingSequence(fullSpeed, 1);
+    if (moveTimer.get() != 9 && moveTimer.get() > 12) {
       // Drives forward continuously at half speed, using the gyro to stabilize the
       // heading
       m_robotDrive.tankDrive(.5, .5);
     } else {
       m_robotDrive.tankDrive(0, 0);
-    }
-
-    if (shootCompleted == false) {
-      // Spin the shooter for 1 sec
-      if ((shootTimer.get() >= 4) && (shootTimer.get() < 6)) {
-        leftShooter.set(ControlMode.PercentOutput, fullSpeed);
-        rightShooter.set(fullSpeed);
-        SmartDashboard.putString("DB/String 2", "Less than 1");
-      }
-      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-      else if (shootTimer.get() >= 6 && shootTimer.get() < 8) {
-        intakeLittleWheels.set(fullSpeed);
-        leftShooter.set(ControlMode.PercentOutput, fullSpeed);
-        rightShooter.set(fullSpeed);
-        SmartDashboard.putString("DB/String 2", "between 1 and 5");
-      }
-      // After 5 sec or by deafult stop all motors
-      else if (shootTimer.get() >= 8) {
-        SmartDashboard.putString("DB/String 2", "shoot complete");
-        leftShooter.set(ControlMode.PercentOutput, 0);
-        rightShooter.set(0);
-        intakeLittleWheels.set(0);
-        shootCompleted = true;
-      }
     }
   }
 
@@ -221,9 +205,9 @@ public class Robot extends TimedRobot {
 
     // uses triggers for arm intake
     if (m_coDriverController.getLeftBumperPressed()) {
-      intakeLittleWheels.set(-fullSpeed);
+      intakeLittleWheels.set(-0.7);
     } else if (m_coDriverController.getRightBumperPressed()) {
-      intakeLittleWheels.set(fullSpeed);
+      intakeLittleWheels.set(0.7);
     } else if (m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { // if
                                                                                                                 // nothing
                                                                                                                 // pressed,
@@ -247,49 +231,19 @@ public class Robot extends TimedRobot {
     if (m_coDriverController.getYButton()) {
       // the shooter spins for 0.2 second and after that, the intake wheels start
       // moving as the shooter keeps spinning
-      // shootTimer.reset();
       if (shootTimer.get() == 0) {
         shootTimer.start();
       }
-      SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
-
-      if (shootCompleted == false) {
-        // Spin the shooter for 1 sec
-        if ((shootTimer.get() != 0) && (shootTimer.get() < feedDelay)) {
-          leftShooter.set(ControlMode.PercentOutput, fullSpeed);
-          rightShooter.set(fullSpeed);
-          SmartDashboard.putString("DB/String 2", "Less than 1");
-        }
-        // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-        else if (shootTimer.get() >= feedDelay && shootTimer.get() < shootDelay) {
-          intakeLittleWheels.set(fullSpeed);
-          leftShooter.set(ControlMode.PercentOutput, fullSpeed);
-          rightShooter.set(fullSpeed);
-          SmartDashboard.putString("DB/String 2", "between 1 and 5");
-        }
-        // After 5 sec or by deafult stop all motors
-        else if (shootTimer.get() >= shootDelay) {
-          SmartDashboard.putString("DB/String 2", "shoot complete");
-          leftShooter.set(ControlMode.PercentOutput, 0);
-          rightShooter.set(0);
-          intakeLittleWheels.set(0);
-          shootTimer.reset();
-          shootCompleted = true;
-        }
-      }
+      shootingSequence(fullSpeed, 0);
     } else if (m_coDriverController.getYButtonReleased()) {
-      SmartDashboard.putString("DB/String 2", "button released");
-      leftShooter.set(ControlMode.PercentOutput, 0);
-      rightShooter.set(0);
-      intakeLittleWheels.set(0);
-      shootTimer.reset();
+      motorOff();
       shootCompleted = false;
     }
 
     // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, minSpeed);
-      rightShooter.set(minSpeed);
+      leftShooter.set(ControlMode.PercentOutput, 0.3);
+      rightShooter.set(0.3);
     } else if (m_coDriverController.getBButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
       rightShooter.set(0);
@@ -311,20 +265,55 @@ public class Robot extends TimedRobot {
 
     // BRINGS ROBOT UP
     // if (m_driverController.getLeftBumperPressed()) {
-    //   m_climbRight.set(ControlMode.PercentOutput, 0.7);
-    //   m_climbLeft.set(0.7);
-    // } else if (m_driverController.getLeftBumperReleased()) { // if nothing pressed, left doesn't move
-    //   m_climbRight.set(ControlMode.PercentOutput, 0);
-    //   m_climbLeft.set(0);
+    // m_climbRight.set(ControlMode.PercentOutput, 0.7);
+    // m_climbLeft.set(0.7);
+    // } else if (m_driverController.getLeftBumperReleased()) { // if nothing
+    // pressed, left doesn't move
+    // m_climbRight.set(ControlMode.PercentOutput, 0);
+    // m_climbLeft.set(0);
     // }
     // if (m_driverController.getRightBumperPressed()) {
-    //   m_climbRight.set(ControlMode.PercentOutput, -0.7);
-    //   m_climbLeft.set(-0.7);
-    // } else if (m_driverController.getRightBumperReleased()) { // if nothnig pressed, right doesn't move
-    //   m_climbRight.set(ControlMode.PercentOutput, 0);
-    //   m_climbLeft.set(0);
+    // m_climbRight.set(ControlMode.PercentOutput, -0.7);
+    // m_climbLeft.set(-0.7);
+    // } else if (m_driverController.getRightBumperReleased()) { // if nothnig
+    // pressed, right doesn't move
+    // m_climbRight.set(ControlMode.PercentOutput, 0);
+    // m_climbLeft.set(0);
     // }
 
+  }
+
+  public void motorOff() {
+    SmartDashboard.putString("DB/String 2", "button released");
+    leftShooter.set(ControlMode.PercentOutput, 0);
+    rightShooter.set(0);
+    intakeLittleWheels.set(0);
+    shootTimer.reset();
+  }
+
+  public void shootingSequence(double shootingSpeed, double timeStart) {
+    SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
+
+    if (shootCompleted == false) {
+      // Spin the shooter for 3 sec
+      if ((shootTimer.get() != timeStart) && (shootTimer.get() < timeStart + 3)) {
+        leftShooter.set(ControlMode.PercentOutput, shootingSpeed);
+        rightShooter.set(shootingSpeed);
+        SmartDashboard.putString("DB/String 2", "Less than 1");
+      }
+      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+      else if (shootTimer.get() >= timeStart && shootTimer.get() < timeStart + 6) {
+        intakeLittleWheels.set(shootingSpeed);
+        leftShooter.set(ControlMode.PercentOutput, shootingSpeed);
+        rightShooter.set(shootingSpeed);
+        SmartDashboard.putString("DB/String 2", "between 1 and 5");
+      }
+      // After 5 sec or by deafult stop all motors
+      else if (shootTimer.get() >= timeStart + 6) {
+        motorOff();
+        shootCompleted = true;
+      }
+    }
   }
 
   /**
