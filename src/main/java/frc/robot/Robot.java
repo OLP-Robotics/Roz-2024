@@ -74,6 +74,10 @@ public class Robot extends TimedRobot {
   private final Timer shootTimer = new Timer();
   private boolean shootCompleted = false;
 
+  private double intakeSpeed = 1;
+  private double feedDelay = 3;
+  private double shootDelay = feedDelay + 4; // 7 seconds since time start
+
   // Create an instance of the AnalogInput class so we can read from it later
   /*
    * public DigitalOutput ultrasonicTriggerPinOne = new DigitalOutput(0);
@@ -145,6 +149,45 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
+    // the shooter spins for 0.2 second and after that, the intake wheels start
+    // moving as the shooter keeps spinning
+    // shootTimer.reset();
+    if (shootTimer.get() == 0) {
+      shootTimer.start();
+    }
+    SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
+
+    if (shootTimer.get() != 0 && shootTimer.get() < 0.7) {
+      // Drives forward continuously at half speed, using the gyro to stabilize the
+      // heading
+      m_robotDrive.tankDrive(.5, .5);
+    } else {
+      m_robotDrive.tankDrive(0, 0);
+    }
+
+    if (shootCompleted == false) {
+      // Spin the shooter for 1 sec
+      if ((shootTimer.get() >= 4) && (shootTimer.get() < 7)) {
+        leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
+        rightShooter.set(-intakeSpeed);
+        SmartDashboard.putString("DB/String 2", "Less than 1");
+      }
+      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+      else if (shootTimer.get() >= 7 && shootTimer.get() < 11) {
+        intakeLittleWheels.set(intakeSpeed);
+        leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
+        rightShooter.set(-intakeSpeed);
+        SmartDashboard.putString("DB/String 2", "between 1 and 5");
+      }
+      // After 5 sec or by deafult stop all motors
+      else if (shootTimer.get() >= 11) {
+        SmartDashboard.putString("DB/String 2", "shoot complete");
+        leftShooter.set(ControlMode.PercentOutput, 0);
+        rightShooter.set(0);
+        intakeLittleWheels.set(0);
+        shootCompleted = true;
+      }
+    }
   }
 
   /** This function is called once when teleop is enabled. */
@@ -190,8 +233,8 @@ public class Robot extends TimedRobot {
 
     // this will be for intaking the shooter
     if (m_coDriverController.getXButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, -.4);
-      rightShooter.set(.4);
+      leftShooter.set(ControlMode.PercentOutput, -1);
+      rightShooter.set(.1);
       // intakeLittleWheels.set(-1);
     } else if (m_coDriverController.getXButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
@@ -211,20 +254,20 @@ public class Robot extends TimedRobot {
 
       if (shootCompleted == false) {
         // Spin the shooter for 1 sec
-        if ((shootTimer.get() != 0) && (shootTimer.get() < 1)) {
-          leftShooter.set(ControlMode.PercentOutput, 0.4);
-          rightShooter.set(-0.4);
+        if ((shootTimer.get() != 0) && (shootTimer.get() < feedDelay)) {
+          leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
+          rightShooter.set(-intakeSpeed);
           SmartDashboard.putString("DB/String 2", "Less than 1");
         }
         // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-        else if (shootTimer.get() >= 1 && shootTimer.get() < 5) {
-          intakeLittleWheels.set(0.4);
-          leftShooter.set(ControlMode.PercentOutput, 0.4);
-          rightShooter.set(-0.4);
+        else if (shootTimer.get() >= feedDelay && shootTimer.get() < shootDelay) {
+          intakeLittleWheels.set(intakeSpeed);
+          leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
+          rightShooter.set(-intakeSpeed);
           SmartDashboard.putString("DB/String 2", "between 1 and 5");
         }
         // After 5 sec or by deafult stop all motors
-        else if (shootTimer.get() >= 5) {
+        else if (shootTimer.get() >= shootDelay) {
           SmartDashboard.putString("DB/String 2", "shoot complete");
           leftShooter.set(ControlMode.PercentOutput, 0);
           rightShooter.set(0);
@@ -249,8 +292,7 @@ public class Robot extends TimedRobot {
     } else if (m_coDriverController.getBButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
       rightShooter.set(0);
-    }
-    else if (m_coDriverController.getAButtonPressed()) {
+    } else if (m_coDriverController.getAButtonPressed()) {
       leftShooter.set(ControlMode.PercentOutput, 1);
       rightShooter.set(-1);
     } else if (m_coDriverController.getAButtonReleased()) {
