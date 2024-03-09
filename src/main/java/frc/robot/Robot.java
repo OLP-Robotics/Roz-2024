@@ -75,8 +75,8 @@ public class Robot extends TimedRobot {
   private boolean shootCompleted = false;
 
   private double intakeSpeed = 1;
-  private double feedDelay = 3;
-  private double shootDelay = feedDelay + 4; // 7 seconds since time start
+  private double feedDelay = 2;
+  private double shootDelay = feedDelay + 2; // 4 seconds since time start
 
   // Create an instance of the AnalogInput class so we can read from it later
   /*
@@ -157,7 +157,7 @@ public class Robot extends TimedRobot {
     }
     SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
 
-    if (shootTimer.get() != 0 && shootTimer.get() < 0.7) {
+    if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
       // Drives forward continuously at half speed, using the gyro to stabilize the
       // heading
       m_robotDrive.tankDrive(.5, .5);
@@ -167,20 +167,20 @@ public class Robot extends TimedRobot {
 
     if (shootCompleted == false) {
       // Spin the shooter for 1 sec
-      if ((shootTimer.get() >= 4) && (shootTimer.get() < 7)) {
+      if ((shootTimer.get() >= 4) && (shootTimer.get() < 6)) {
         leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
         rightShooter.set(-intakeSpeed);
         SmartDashboard.putString("DB/String 2", "Less than 1");
       }
       // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-      else if (shootTimer.get() >= 7 && shootTimer.get() < 11) {
+      else if (shootTimer.get() >= 6 && shootTimer.get() < 8) {
         intakeLittleWheels.set(intakeSpeed);
         leftShooter.set(ControlMode.PercentOutput, intakeSpeed);
         rightShooter.set(-intakeSpeed);
         SmartDashboard.putString("DB/String 2", "between 1 and 5");
       }
       // After 5 sec or by deafult stop all motors
-      else if (shootTimer.get() >= 11) {
+      else if (shootTimer.get() >= 8) {
         SmartDashboard.putString("DB/String 2", "shoot complete");
         leftShooter.set(ControlMode.PercentOutput, 0);
         rightShooter.set(0);
@@ -300,11 +300,11 @@ public class Robot extends TimedRobot {
       rightShooter.set(0);
     }
 
-    if (m_coDriverController.getRightY() < 0 && !(leftLimitSwitch.get())) {
+    if (m_coDriverController.getLeftY() < 0 && !(leftLimitSwitch.get())) {
       intakeMover.set(-0.5);
-    } else if (m_coDriverController.getRightY() > 0) {
+    } else if (m_coDriverController.getLeftY() > 0) {
       intakeMover.set(0.5);
-    } else if (m_coDriverController.getRightY() == 0) { // if nothing pressed, don't move
+    } else if (m_coDriverController.getLeftY() == 0) { // if nothing pressed, don't move
       intakeMover.set(0);
     }
 
