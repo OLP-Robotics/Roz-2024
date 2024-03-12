@@ -15,10 +15,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.util.sendable.SendableRegistry;
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.InvertType;
+
 //Import required WPILib libraries
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -26,8 +26,6 @@ import edu.wpi.first.wpilibj.DigitalOutput;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -48,10 +46,10 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used
    * initialization code.
    */
-  private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX(2);
-  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX(6);
-  private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX(1);
-  private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX(5);
+  private final WPI_VictorSPX m_leftMotorLead = new WPI_VictorSPX(6);
+  private final WPI_VictorSPX m_leftMotorFollow = new WPI_VictorSPX(2);
+  private final WPI_VictorSPX m_rightMotorLead = new WPI_VictorSPX(5);
+  private final WPI_VictorSPX m_rightMotorFollow = new WPI_VictorSPX(1);
 
   private final TalonSRX m_climbRight = new TalonSRX(4);
   private final WPI_VictorSPX m_climbLeft = new WPI_VictorSPX(7);
@@ -74,10 +72,8 @@ public class Robot extends TimedRobot {
   private final Timer shootTimer = new Timer();
   private boolean shootCompleted = false;
 
-  private double feedDelay = 2;
-  private double shootDelay = feedDelay + 2; // 4 seconds since time start
   private double fullSpeed = 1;
-  private double minSpeed = 0.4;
+  private double minSpeed = 0.3;
 
   // Create an instance of the AnalogInput class so we can read from it later
   /*
@@ -97,18 +93,27 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    m_leftMotorLead.follow(m_leftMotorFollow);
-    m_rightMotorLead.follow(m_rightMotorFollow);
-    // m_robotDrive = new DifferentialDrive(m_leftMotorLead::set,
-    // m_rightMotorLead::set);
-    m_robotDrive = new DifferentialDrive(m_leftMotorLead, m_rightMotorLead);
-    SendableRegistry.addChild(m_robotDrive, m_leftMotorLead);
-    SendableRegistry.addChild(m_robotDrive, m_rightMotorLead);
+    //USED TO BE
+    // m_leftMotorLead.follow(m_leftMotorFollow);
+    // m_rightMotorLead.follow(m_rightMotorFollow);
+
+    // //NEW
+    m_leftMotorFollow.set(ControlMode.Follower, m_leftMotorLead.getDeviceID());
+    m_leftMotorFollow.setInverted(InvertType.FollowMaster);
+
+    m_rightMotorFollow.set(ControlMode.Follower, m_rightMotorLead.getDeviceID());
+    m_rightMotorFollow.setInverted(InvertType.FollowMaster);
 
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
     m_rightMotorLead.setInverted(true);
+
+    // m_robotDrive = new DifferentialDrive(m_leftMotorLead::set,
+    // m_rightMotorLead::set);
+    m_robotDrive = new DifferentialDrive(m_leftMotorLead, m_rightMotorLead);
+    SendableRegistry.addChild(m_robotDrive, m_leftMotorLead);
+    SendableRegistry.addChild(m_robotDrive, m_rightMotorLead);
 
     /** This function is called periodically during operator control. */
 
@@ -158,6 +163,7 @@ public class Robot extends TimedRobot {
       shootTimer.start();
     }
 
+    //MOVE BEFORE SHOOTING
     // if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
     // // Drives forward continuously at half speed, using the gyro to stabilize the
     // // heading
@@ -165,8 +171,12 @@ public class Robot extends TimedRobot {
     // } else {
     // m_robotDrive.tankDrive(0, 0);
     // }
+  
+    //SHOOT
     shootingSequence(fullSpeed, 1);
-    if (moveTimer.get() != 9 && moveTimer.get() > 12) {
+
+    //MOVE AFTER SHOOTING
+    if (moveTimer.get() > 7 && moveTimer.get() < 10) {
       // Drives forward continuously at half speed, using the gyro to stabilize the
       // heading
       m_robotDrive.tankDrive(.5, .5);
@@ -242,8 +252,8 @@ public class Robot extends TimedRobot {
 
     // this will be for ejecting shooter slow
     else if (m_coDriverController.getBButtonPressed()) {
-      leftShooter.set(ControlMode.PercentOutput, 0.3);
-      rightShooter.set(0.3);
+      leftShooter.set(ControlMode.PercentOutput, minSpeed);
+      rightShooter.set(minSpeed);
     } else if (m_coDriverController.getBButtonReleased()) {
       leftShooter.set(ControlMode.PercentOutput, 0);
       rightShooter.set(0);
@@ -293,6 +303,7 @@ public class Robot extends TimedRobot {
 
   public void shootingSequence(double shootingSpeed, double timeStart) {
     SmartDashboard.putString("DB/String 4", Boolean.toString(shootCompleted));
+    m_robotDrive.feed(); // Avoid getting "Output not updated often enough" errors
 
     if (shootCompleted == false) {
       // Spin the shooter for 3 sec
