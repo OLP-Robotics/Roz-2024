@@ -93,7 +93,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    //USED TO BE
+    // USED TO BE
     // m_leftMotorLead.follow(m_leftMotorFollow);
     // m_rightMotorLead.follow(m_rightMotorFollow);
 
@@ -159,30 +159,63 @@ public class Robot extends TimedRobot {
     // the shooter spins for 0.2 second and after that, the intake wheels start
     // moving as the shooter keeps spinning
     // shootTimer.reset();
+    // if (shootTimer.get() == 0) {
+    // shootTimer.start();
+    // }
+
+    // // MOVE BEFORE SHOOTING
+    // if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
+    // // Drives forward for 1.2 sec to move 3 1/2 feet
+    // m_robotDrive.tankDrive(.5, .5);
+    // } else {
+    // m_robotDrive.tankDrive(0, 0);
+    // }
+
+    // 2 note auto
     if (shootTimer.get() == 0) {
       shootTimer.start();
     }
+    shootingSequence(fullSpeed, 1);
 
-    //MOVE BEFORE SHOOTING
-    // if (shootTimer.get() != 0 && shootTimer.get() < 1.2) {
+    // MOVE AFTER SHOOTING
+    if (moveTimer.get() > 6 && moveTimer.get() < 7.9) {
+      // Drives forward for 1.9 sec to move ~53 in
+      intakeMover.set(-0.5);
+      intakeLittleWheels.set(0.4);
+      m_robotDrive.tankDrive(.5, .5);
+    } else {
+      m_robotDrive.tankDrive(0, 0);
+      intakeMover.set(0.5);
+    }
+    if (moveTimer.get() > 8.1 && moveTimer.get() < 10) {
+      // Drives forward for
+      m_robotDrive.tankDrive(.5, .5);
+    } else {
+      m_robotDrive.tankDrive(0, 0);
+    }
+     if ((shootTimer.get() != 10) && (shootTimer.get() < 13)) {
+        leftShooter.set(ControlMode.PercentOutput, 1);
+        rightShooter.set(1);
+        SmartDashboard.putString("DB/String 2", "Less than 1");
+      }
+    // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+    if (shootTimer.get() >= 13 && shootTimer.get() <  16) {
+      intakeLittleWheels.set(0.4);
+      leftShooter.set(ControlMode.PercentOutput, 1);
+      rightShooter.set(1);
+    }
+
+    // SHOOT
+    // shootingSequence(fullSpeed, 1);
+
+    // //MOVE AFTER SHOOTING
+    // if (moveTimer.get() > 7 && moveTimer.get() < 10) {
     // // Drives forward continuously at half speed, using the gyro to stabilize the
     // // heading
     // m_robotDrive.tankDrive(.5, .5);
     // } else {
     // m_robotDrive.tankDrive(0, 0);
     // }
-  
-    //SHOOT
-    shootingSequence(fullSpeed, 1);
-
-    //MOVE AFTER SHOOTING
-    if (moveTimer.get() > 7 && moveTimer.get() < 10) {
-      // Drives forward continuously at half speed, using the gyro to stabilize the
-      // heading
-      m_robotDrive.tankDrive(.5, .5);
-    } else {
-      m_robotDrive.tankDrive(0, 0);
-    }
   }
 
   /** This function is called once when teleop is enabled. */
