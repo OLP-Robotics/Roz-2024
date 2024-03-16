@@ -65,12 +65,14 @@ public class Robot extends TimedRobot {
   private final XboxController m_driverController = new XboxController(0);
   private XboxController m_coDriverController = new XboxController(1);
 
-  // private DigitalInput rightLimitSwitch = new DigitalInput(1);
   private DigitalInput leftLimitSwitch = new DigitalInput(0);
+  private DigitalInput rightLimitSwitch = new DigitalInput(1);
 
   private final Timer moveTimer = new Timer();
   private final Timer shootTimer = new Timer();
+  private final Timer twoNoteTimer = new Timer();
   private boolean shootCompleted = false;
+  private boolean twoNoteShootCompleted = false;
 
   private double fullSpeed = 1;
   private double minSpeed = 0.3;
@@ -151,11 +153,15 @@ public class Robot extends TimedRobot {
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
     moveTimer.start();
+    shootTimer.start();
+
   }
 
-  /** This function is called periodically during autonomous. */
-  @Override
-  public void autonomousPeriodic() {
+  public void simpleAuto() {
+
+    // shootTimer.start();
+    // }
+
     // the shooter spins for 0.2 second and after that, the intake wheels start
     // moving as the shooter keeps spinning
     // shootTimer.reset();
@@ -171,41 +177,7 @@ public class Robot extends TimedRobot {
     // m_robotDrive.tankDrive(0, 0);
     // }
 
-    // 2 note auto
-    if (shootTimer.get() == 0) {
-      shootTimer.start();
-    }
-    shootingSequence(fullSpeed, 1);
-
-    // MOVE AFTER SHOOTING
-    if (moveTimer.get() > 6 && moveTimer.get() < 7.9) {
-      // Drives forward for 1.9 sec to move ~53 in
-      intakeMover.set(-0.5);
-      intakeLittleWheels.set(0.4);
-      m_robotDrive.tankDrive(.5, .5);
-    } else {
-      m_robotDrive.tankDrive(0, 0);
-      intakeMover.set(0.5);
-    }
-    if (moveTimer.get() > 8.1 && moveTimer.get() < 10) {
-      // Drives forward for
-      m_robotDrive.tankDrive(.5, .5);
-    } else {
-      m_robotDrive.tankDrive(0, 0);
-    }
-     if ((shootTimer.get() != 10) && (shootTimer.get() < 13)) {
-        leftShooter.set(ControlMode.PercentOutput, 1);
-        rightShooter.set(1);
-        SmartDashboard.putString("DB/String 2", "Less than 1");
-      }
-    // After 2 sec the intake wheel feeds note into shooter for another 3 sec
-    if (shootTimer.get() >= 13 && shootTimer.get() <  16) {
-      intakeLittleWheels.set(0.4);
-      leftShooter.set(ControlMode.PercentOutput, 1);
-      rightShooter.set(1);
-    }
-
-    // SHOOT
+    // //SHOOT
     // shootingSequence(fullSpeed, 1);
 
     // //MOVE AFTER SHOOTING
@@ -213,9 +185,61 @@ public class Robot extends TimedRobot {
     // // Drives forward continuously at half speed, using the gyro to stabilize the
     // // heading
     // m_robotDrive.tankDrive(.5, .5);
-    // } else {
-    // m_robotDrive.tankDrive(0, 0);
-    // }
+
+  }
+
+  /** This function is called periodically during autonomous. */
+  @Override
+  public void autonomousPeriodic() {
+    SmartDashboard.putString("DB/String 6", "  ");
+    m_robotDrive.feed(); // Avoid getting "Output not updated often enough" errors
+    if (shootTimer.get() == 0) {
+      shootTimer.start();
+    }
+    shootingSequence(fullSpeed, 1); // goes through one note sequence
+
+    if (shootCompleted == true) {
+      twoNoteTimer.start();
+      SmartDashboard.putString("DB/String 5", "  ");
+
+      // Drives forward for 1.9 sec to move ~53 in
+      if ((twoNoteTimer.get() >= 0) && (twoNoteTimer.get() < 1.9)) {
+        if (!rightLimitSwitch.get()) {
+          intakeMover.set(0.5);
+        }
+        intakeLittleWheels.set(0.4);
+        m_robotDrive.tankDrive(.5, .5);
+        SmartDashboard.putString("DB/String 7", "drove forward");
+      } else if ((twoNoteTimer.get() >= 1.9) && (twoNoteTimer.get() < 3.1)) {
+        if (!leftLimitSwitch.get()) {
+          intakeMover.set(-0.5);
+        }
+        // after moving, the robot stops and brings the intake up
+        SmartDashboard.putString("DB/String 8", "stopped");
+        m_robotDrive.tankDrive(0, 0);
+        intakeLittleWheels.set(0);
+      }
+      // Drives back to the subwoofer while warming up the wheels to shoot
+      else if (twoNoteTimer.get() > 3.1 && twoNoteTimer.get() < 5) {
+        m_robotDrive.tankDrive(-.5, -.5);
+        leftShooter.set(ControlMode.PercentOutput, 1);
+        rightShooter.set(1);
+      } else if (twoNoteTimer.get() >= 5 && twoNoteTimer.get() < 7) { // the robot stops driving and continues to warm
+        // up the wheels
+        m_robotDrive.tankDrive(0, 0);
+        leftShooter.set(ControlMode.PercentOutput, 1);
+        rightShooter.set(1);
+      } else if (twoNoteTimer.get() >= 7 && twoNoteTimer.get() < 9) { // intake feeds the note into the shooter
+        intakeLittleWheels.set(0.4);
+        leftShooter.set(ControlMode.PercentOutput, 1);
+        rightShooter.set(1);
+      } else if (twoNoteTimer.get() >= 9) { // turns off intake and shooter
+        intakeLittleWheels.set(0);
+        leftShooter.set(ControlMode.PercentOutput, 0);
+        rightShooter.set(0);
+        twoNoteShootCompleted = true;
+      }
+    }
   }
 
   /** This function is called once when teleop is enabled. */
@@ -300,11 +324,20 @@ public class Robot extends TimedRobot {
 
     if (m_coDriverController.getLeftY() < 0 && !(leftLimitSwitch.get())) {
       intakeMover.set(-0.5);
-    } else if (m_coDriverController.getLeftY() > 0) {
+    } else if (m_coDriverController.getLeftY() > 0 && !(rightLimitSwitch.get())) {
       intakeMover.set(0.5);
     } else if (m_coDriverController.getLeftY() == 0) { // if nothing pressed, don't move
       intakeMover.set(0);
     }
+
+    // if (m_driverController.getLeftY() < 0) {
+    // intakeMover.set(-0.5);
+    // } else if (m_driverController.getLeftY() > 0 && !(rightLimitSwitch.get())) {
+    // intakeMover.set(0.5);
+    // } else if (m_driverController.getLeftY() == 0) { // if nothing pressed, don't
+    // move
+    // intakeMover.set(0);
+    // }
 
     // BRINGS ROBOT UP
     // if (m_driverController.getLeftBumperPressed()) {
@@ -345,14 +378,14 @@ public class Robot extends TimedRobot {
         rightShooter.set(shootingSpeed);
         SmartDashboard.putString("DB/String 2", "Less than 1");
       }
-      // After 2 sec the intake wheel feeds note into shooter for another 3 sec
+      // After 3 sec the intake wheel feeds note into shooter for another 3 sec
       else if (shootTimer.get() >= timeStart && shootTimer.get() < timeStart + 6) {
         intakeLittleWheels.set(shootingSpeed);
         leftShooter.set(ControlMode.PercentOutput, shootingSpeed);
         rightShooter.set(shootingSpeed);
         SmartDashboard.putString("DB/String 2", "between 1 and 5");
       }
-      // After 5 sec or by deafult stop all motors
+      // After 6 sec or by deafult stop all motors
       else if (shootTimer.get() >= timeStart + 6) {
         motorOff();
         shootCompleted = true;
@@ -373,6 +406,9 @@ public class Robot extends TimedRobot {
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {
+    shootTimer.reset();
+    moveTimer.reset();
+    twoNoteTimer.reset();
   }
 
   /** This function is called periodically when disabled. */
