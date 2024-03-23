@@ -29,12 +29,10 @@ import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
- * functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the
- * name of this class or
- * the package after creating this project, you must also update the
- * build.gradle file in the
- * project.
+ * functions corresponding to each mode, as described in the TimedRobot
+ * documentation. If you change the name of this class or the package
+ * after creating this project, you must also update the build.gradle
+ * file in the project.
  */
 public class Robot extends TimedRobot {
   private static final String autoDefault = "Do nothing";
@@ -101,11 +99,11 @@ public class Robot extends TimedRobot {
     m_chooser.addOption(autoOption3, autoOption3);
     SmartDashboard.putData("Auto choices", m_chooser);
 
-    // USED TO BE
+    // USED TO BE. Commented out because the follower motor wasn't actually moving
     // m_leftMotorLead.follow(m_leftMotorFollow);
     // m_rightMotorLead.follow(m_rightMotorFollow);
 
-    // //NEW
+    // NEW
     m_leftMotorFollow.set(ControlMode.Follower, m_leftMotorLead.getDeviceID());
     m_leftMotorFollow.setInverted(InvertType.FollowMaster);
 
@@ -138,20 +136,15 @@ public class Robot extends TimedRobot {
 
   /**
    * This autonomous (along with the chooser code above) shows how to select
-   * between different
-   * autonomous modes using the dashboard. The sendable chooser code works with
-   * the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the
-   * chooser code and
-   * uncomment the getString line to get the auto name from the text box below the
-   * Gyro
+   * between different autonomous modes using the dashboard. The sendable
+   * chooser code works with the Java SmartDashboard. If you prefer the
+   * LabVIEW Dashboard, remove all of the chooser code and uncomment the
+   * getString line to get the auto name from the text box below the Gyro
    *
    * <p>
    * You can add additional auto modes by adding additional comparisons to the
-   * switch structure
-   * below with additional strings. If using the SendableChooser make sure to add
-   * them to the
-   * chooser code above as well.
+   * switch structure below with additional strings. If using the
+   * SendableChooser make sure to add them to the chooser code above as well.
    */
   @Override
   public void autonomousInit() {
@@ -227,7 +220,7 @@ public class Robot extends TimedRobot {
      * Right trigger moves the robot backwards
      * When you push the right Y axis up it turns the robot to the right
      * When you push the right Y axis down it turns the robot to the left
-     * `
+     * 
      */
     if (m_driverController.getLeftTriggerAxis() > 0) {
       m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(), -m_driverController.getLeftTriggerAxis());
@@ -245,11 +238,8 @@ public class Robot extends TimedRobot {
       intakeLittleWheels.set(-0.7);
     } else if (m_coDriverController.getRightBumperPressed()) {
       intakeLittleWheels.set(0.7);
-    } else if (m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) { // if
-                                                                                                                // nothing
-                                                                                                                // pressed,
-                                                                                                                // dont
-                                                                                                                // move
+    } else if (m_coDriverController.getRightBumperReleased() || m_coDriverController.getLeftBumperReleased()) {
+      // if nothing pressed, dont move
       intakeLittleWheels.set(0);
     }
 
@@ -293,14 +283,20 @@ public class Robot extends TimedRobot {
     }
 
     if (m_coDriverController.getLeftY() < 0 && !(leftLimitSwitch.get())) {
-      intakeMover.set(-0.5);
+      intakeMover.set(-0.7);
     } else if (m_coDriverController.getLeftY() > 0 && !(rightLimitSwitch.get())) {
-      intakeMover.set(0.5);
+      intakeMover.set(0.7);
     } else if (m_coDriverController.getLeftY() == 0) { // if nothing pressed, don't move
       intakeMover.set(0);
     }
 
-    // if (m_driverController.getLeftY() < 0) {
+    // // uses triggers if note gets stuck
+    // if (m_coDriverController.getLeftTriggerAxis() > 0) {
+    //   intakeLittleWheels.set(1);
+    // } else if (m_coDriverController.getLeftTriggerAxis() <= 0) {
+    //   intakeLittleWheels.set(0);
+    // }
+    // if (m_driverController.getLeftY() < 0)
     // intakeMover.set(-0.5);
     // } else if (m_driverController.getLeftY() > 0 && !(rightLimitSwitch.get())) {
     // intakeMover.set(0.5);
@@ -349,14 +345,14 @@ public class Robot extends TimedRobot {
         SmartDashboard.putString("DB/String 2", "Less than 1");
       }
       // After 3 sec the intake wheel feeds note into shooter for another 3 sec
-      else if (shootTimer.get() >= timeStart && shootTimer.get() < timeStart + 6) {
+      else if ((shootTimer.get() >= timeStart + 3) && (shootTimer.get() < timeStart + 5)) {
         intakeLittleWheels.set(shootingSpeed);
         leftShooter.set(ControlMode.PercentOutput, shootingSpeed);
         rightShooter.set(shootingSpeed);
         SmartDashboard.putString("DB/String 2", "between 1 and 5");
       }
       // After 6 sec or by deafult stop all motors
-      else if (shootTimer.get() >= timeStart + 6) {
+      else if (shootTimer.get() >= timeStart + 5) {
         motorOff();
         shootCompleted = true;
       }
@@ -376,37 +372,37 @@ public class Robot extends TimedRobot {
       SmartDashboard.putString("DB/String 5", "  ");
 
       // Drives forward for 1.9 sec to move ~53 in
-      if ((twoNoteTimer.get() >= 0) && (twoNoteTimer.get() < 1.9)) {
+      if ((twoNoteTimer.get() >= 0) && (twoNoteTimer.get() < 2.4)) {
         if (!rightLimitSwitch.get()) {
-          intakeMover.set(0.5);
+          intakeMover.set(0.7);
         }
-        intakeLittleWheels.set(0.7);
-        m_robotDrive.tankDrive(.5, .5);
+        intakeLittleWheels.set(-0.8);
+        m_robotDrive.tankDrive(.475, .475);
         SmartDashboard.putString("DB/String 7", "drove forward");
-      } else if ((twoNoteTimer.get() >= 1.9) && (twoNoteTimer.get() < 3.1)) {
+      } else if ((twoNoteTimer.get() >= 2.4) && (twoNoteTimer.get() < 3.5)) {
         if (!leftLimitSwitch.get()) {
-          intakeMover.set(-0.5);
+          intakeMover.set(-0.7);
         }
         // after moving, the robot stops and brings the intake up
         SmartDashboard.putString("DB/String 8", "stopped");
         m_robotDrive.tankDrive(0, 0);
         intakeLittleWheels.set(0);
-      }
-      // Drives back to the subwoofer while warming up the wheels to shoot
-      else if (twoNoteTimer.get() > 3.1 && twoNoteTimer.get() < 5) {
-        m_robotDrive.tankDrive(-.5, -.5);
+      } else if (twoNoteTimer.get() > 3.5 && twoNoteTimer.get() < 5.6) {
+        // Drives back to the subwoofer while warming up the wheels to shoot
+        m_robotDrive.tankDrive(-.6, -.6);
         leftShooter.set(ControlMode.PercentOutput, 1);
-        rightShooter.set(1);
-      } else if (twoNoteTimer.get() >= 5 && twoNoteTimer.get() < 7) { // the robot stops driving and continues to warm
+        rightShooter.set(0.9);
+      } else if (twoNoteTimer.get() >= 5.6 && twoNoteTimer.get() < 7.6) { // the robot stops driving and continues to
+                                                                          // warm
         // up the wheels
         m_robotDrive.tankDrive(0, 0);
         leftShooter.set(ControlMode.PercentOutput, 1);
         rightShooter.set(1);
-      } else if (twoNoteTimer.get() >= 7 && twoNoteTimer.get() < 9) { // intake feeds the note into the shooter
-        intakeLittleWheels.set(0.4);
+      } else if (twoNoteTimer.get() >= 7.6 && twoNoteTimer.get() < 9.6) { // intake feeds the note into the shooter
+        intakeLittleWheels.set(0.5);
         leftShooter.set(ControlMode.PercentOutput, 1);
         rightShooter.set(1);
-      } else if (twoNoteTimer.get() >= 9) { // turns off intake and shooter
+      } else if (twoNoteTimer.get() >= 9.6) { // turns off intake and shooter
         intakeLittleWheels.set(0);
         leftShooter.set(ControlMode.PercentOutput, 0);
         rightShooter.set(0);
@@ -417,8 +413,8 @@ public class Robot extends TimedRobot {
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items
-   * like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
+   * like diagnostics that you want ran during disabled, autonomous, teleoperated
+   * and test.
    *
    * <p>
    * This runs after the mode specific periodic functions, but before LiveWindow
@@ -428,17 +424,11 @@ public class Robot extends TimedRobot {
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {
-    shootTimer.reset();
-    moveTimer.reset();
-    twoNoteTimer.reset();
   }
 
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    shootTimer.reset();
-    moveTimer.reset();
-    twoNoteTimer.reset();
   }
 
   /** This function is called once when test mode is enabled. */
