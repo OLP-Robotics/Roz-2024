@@ -105,9 +105,12 @@ public class Robot extends TimedRobot {
 
     // NEW
     m_leftMotorFollow.set(ControlMode.Follower, m_leftMotorLead.getDeviceID());
+    // m_leftMotorLead.configOpenloopRamp(0.2);
+    // m_rightMotorLead.configOpenloopRamp(0.2);
     m_leftMotorFollow.setInverted(InvertType.FollowMaster);
 
     m_rightMotorFollow.set(ControlMode.Follower, m_rightMotorLead.getDeviceID());
+
     m_rightMotorFollow.setInverted(InvertType.FollowMaster);
 
     // We need to invert one side of the drivetrain so that positive voltages
@@ -174,7 +177,7 @@ public class Robot extends TimedRobot {
     shootingSequence(fullSpeed, 1);
 
     // MOVE AFTER SHOOTING
-    if (moveTimer.get() > 7 && moveTimer.get() < 8) {
+    if (moveTimer.get() > 7 && moveTimer.get() < 9.6) {
       m_robotDrive.tankDrive(.5, .5);
     } else {
       m_robotDrive.tankDrive(0, 0);
@@ -222,16 +225,35 @@ public class Robot extends TimedRobot {
      * When you push the right Y axis down it turns the robot to the left
      * 
      */
+    // if (m_driverController.getLeftTriggerAxis() > 0) {
+    // m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(),
+    // -m_driverController.getLeftTriggerAxis());
+    // } else if (m_driverController.getRightTriggerAxis() > 0) {
+    // m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(),
+    // m_driverController.getRightTriggerAxis());
+    // } else if (m_driverController.getRightY() > 0) {
+    // m_robotDrive.tankDrive(-m_driverController.getRightY(),
+    // m_driverController.getRightY());
+    // } else if (m_driverController.getRightY() < 0) {
+    // m_robotDrive.tankDrive(-m_driverController.getRightY(),
+    // m_driverController.getRightY());
+    // } else
+    // m_robotDrive.tankDrive(0, 0);
+
     if (m_driverController.getLeftTriggerAxis() > 0) {
       m_robotDrive.tankDrive(-m_driverController.getLeftTriggerAxis(), -m_driverController.getLeftTriggerAxis());
-    } else if (m_driverController.getRightTriggerAxis() > 0) {
+    }
+    if (m_driverController.getRightTriggerAxis() > 0) {
       m_robotDrive.tankDrive(m_driverController.getRightTriggerAxis(), m_driverController.getRightTriggerAxis());
-    } else if (m_driverController.getRightY() > 0) {
+    }
+    if (m_driverController.getRightY() != 0) {
       m_robotDrive.tankDrive(-m_driverController.getRightY(), m_driverController.getRightY());
-    } else if (m_driverController.getRightY() < 0) {
-      m_robotDrive.tankDrive(-m_driverController.getRightY(), m_driverController.getRightY());
-    } else
+    }
+    if (m_driverController.getLeftTriggerAxis() <= 0 &&
+        m_driverController.getRightTriggerAxis() <= 0 &&
+        m_driverController.getRightY() == 0) {
       m_robotDrive.tankDrive(0, 0);
+    }
 
     // uses triggers for arm intake
     if (m_coDriverController.getLeftBumperPressed()) {
@@ -292,9 +314,9 @@ public class Robot extends TimedRobot {
 
     // // uses triggers if note gets stuck
     // if (m_coDriverController.getLeftTriggerAxis() > 0) {
-    //   intakeLittleWheels.set(1);
+    // intakeLittleWheels.set(1);
     // } else if (m_coDriverController.getLeftTriggerAxis() <= 0) {
-    //   intakeLittleWheels.set(0);
+    // intakeLittleWheels.set(0);
     // }
     // if (m_driverController.getLeftY() < 0)
     // intakeMover.set(-0.5);
@@ -376,7 +398,7 @@ public class Robot extends TimedRobot {
         if (!rightLimitSwitch.get()) {
           intakeMover.set(0.7);
         }
-        intakeLittleWheels.set(-0.8);
+        intakeLittleWheels.set(-0.7);
         m_robotDrive.tankDrive(.475, .475);
         SmartDashboard.putString("DB/String 7", "drove forward");
       } else if ((twoNoteTimer.get() >= 2.4) && (twoNoteTimer.get() < 3.5)) {
